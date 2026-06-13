@@ -35,6 +35,13 @@ services:
     ports:
       - "8004:8000"
 
+  graphql-service:
+    build:
+      context: .
+      dockerfile: ./sync/graphql-service/Dockerfile
+    ports:
+      - "8005:8000"
+
   user-worker:
     build:
       context: .
