@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use App\Models\Loan;
+use Illuminate\Http\Request;
 
 class BookController extends Controller
 {
@@ -16,7 +17,7 @@ class BookController extends Controller
     // GET BOOK BY ID
     public function show($id)
     {
-        $book = Book::with(['loans.user'])->find($id);
+        $book = Book::find($id);
 
         if (!$book) {
             return response()->json([
@@ -59,5 +60,55 @@ class BookController extends Controller
             'available' => true,
             'message' => 'Buku tersedia untuk dipinjam'
         ]);
+    }
+
+    // CREATE BOOK
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string',
+            'available' => 'boolean'
+        ]);
+
+        $book = Book::create([
+            'title' => $request->title,
+            'available' => $request->available ?? true,
+        ]);
+
+        return response()->json([
+            'message' => 'Buku berhasil ditambahkan',
+            'book' => $book
+        ]);
+    }
+
+    // UPDATE BOOK
+    public function update(Request $request, $id)
+    {
+        $book = Book::find($id);
+
+        if (!$book) {
+            return response()->json(['message' => 'Buku tidak ditemukan'], 404);
+        }
+
+        $book->update($request->all());
+
+        return response()->json([
+            'message' => 'Buku berhasil diperbarui',
+            'book' => $book
+        ]);
+    }
+
+    // DELETE BOOK
+    public function destroy($id)
+    {
+        $book = Book::find($id);
+
+        if (!$book) {
+            return response()->json(['message' => 'Buku tidak ditemukan'], 404);
+        }
+
+        $book->delete();
+
+        return response()->json(['message' => 'Buku berhasil dihapus']);
     }
 }

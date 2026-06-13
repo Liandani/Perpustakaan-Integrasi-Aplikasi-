@@ -14,9 +14,7 @@ class LoanController extends Controller
     // GET ALL LOANS
     public function index()
     {
-        return response()->json(
-            Loan::with(['user', 'book'])->get()
-        );
+        return response()->json(Loan::all());
     }
 
     // CREATE LOAN
@@ -29,16 +27,9 @@ class LoanController extends Controller
             'due_date' => 'nullable|date'
         ]);
 
-        $user = User::find($request->user_id);
-        $book = Book::find($request->book_id);
+        // No monolithic foreign key checks. Assume gateway checked it.
 
-        if (!$user || !$book) {
-            return response()->json([
-                'message' => 'User atau Book tidak ditemukan'
-            ], 404);
-        }
-
-        $activeLoan = Loan::where('book_id', $book->id)
+        $activeLoan = Loan::where('book_id', $request->book_id)
             ->where('status', 'borrowed')
             ->first();
 
@@ -57,27 +48,23 @@ class LoanController extends Controller
             : $loanDate->copy()->addDays(7);
 
         $loan = Loan::create([
-            'user_id' => $user->id,
-            'book_id' => $book->id,
+            'user_id' => $request->user_id,
+            'book_id' => $request->book_id,
             'loan_date' => $loanDate,
             'due_date' => $dueDate,
             'status' => 'borrowed'
         ]);
 
-        $book->update([
-            'available' => false
-        ]);
-
         return response()->json([
             'message' => 'Loan berhasil dibuat',
-            'loan' => $loan->load(['user', 'book'])
+            'loan' => $loan
         ]);
     }
 
     // GET LOAN HISTORY
     public function history()
     {
-        $histories = LoanHistory::with(['user', 'book'])->get();
+        $histories = LoanHistory::all();
 
         return response()->json($histories);
     }
@@ -123,28 +110,20 @@ class LoanController extends Controller
             'return_date' => $returnDate
         ]);
 
-        $book = Book::find($loan->book_id);
-
-        if ($book) {
-            $book->update([
-                'available' => true
-            ]);
-        }
-
         return response()->json([
             'message' => 'Buku berhasil dikembalikan',
             'detail_denda' => [
                 'hari_terlambat' => $daysLate,
                 'total_denda' => 'Rp ' . number_format($fine, 0, ',', '.')
             ],
-            'data' => $loan->load(['user', 'book'])
+            'data' => $loan
         ]);
     }
 
     // GET DETAIL LOAN BY ID
     public function show($id)
     {
-        $loan = Loan::with(['user', 'book'])->find($id);
+        $loan = Loan::find($id);
 
         if (!$loan) {
             return response()->json([
@@ -156,5 +135,36 @@ class LoanController extends Controller
             'message' => 'Loan detail retrieved successfully',
             'data' => $loan
         ]);
+    }
+
+    // UPDATE LOAN
+    public function update(Request $request, $id)
+    {
+        $loan = Loan::find($id);
+
+        if (!$loan) {
+            return response()->json(['message' => 'Loan tidak ditemukan'], 404);
+        }
+
+        $loan->update($request->all());
+
+        return response()->json([
+            'message' => 'Loan berhasil diperbarui',
+            'loan' => $loan
+        ]);
+    }
+
+    // DELETE LOAN
+    public function destroy($id)
+    {
+        $loan = Loan::find($id);
+
+        if (!$loan) {
+            return response()->json(['message' => 'Loan tidak ditemukan'], 404);
+        }
+
+        $loan->delete();
+
+        return response()->json(['message' => 'Loan berhasil dihapus']);
     }
 }

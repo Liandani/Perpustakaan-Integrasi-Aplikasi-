@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Fine;
-use App\Models\Loan;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -42,13 +42,15 @@ class FineController extends Controller
             'loan_id' => 'required|integer'
         ]);
 
-        $loan = Loan::with(['user', 'book'])->find($request->loan_id);
+        $loanResponse = Http::get("http://loan-api:8000/loans/{$request->loan_id}");
 
-        if (!$loan) {
+        if ($loanResponse->failed()) {
             return response()->json([
-                'message' => 'Data peminjaman tidak ditemukan'
+                'message' => 'Data peminjaman tidak ditemukan di sistem peminjaman'
             ], 404);
         }
+
+        $loan = (object) $loanResponse->json('data');
 
         if (!$loan->return_date) {
             return response()->json([
@@ -78,8 +80,8 @@ class FineController extends Controller
             [
                 'user_id' => $loan->user_id,
                 'book_id' => $loan->book_id,
-                'due_date' => $loan->due_date,
-                'return_date' => $loan->return_date,
+                'due_date' => $dueDate->format('Y-m-d H:i:s'),
+                'return_date' => $returnDate->format('Y-m-d H:i:s'),
                 'late_days' => $lateDays,
                 'fine_per_day' => $finePerDay,
                 'total_fine' => $totalFine,
@@ -114,5 +116,54 @@ class FineController extends Controller
             'message' => 'Data denda berdasarkan loan',
             'data' => $fine
         ]);
+    }
+
+    // CREATE FINE (MANUAL)
+    public function store(Request $request)
+    {
+        $request->validate([
+            'loan_id' => 'required|integer',
+            'user_id' => 'required|integer',
+            'book_id' => 'required|integer',
+            'due_date' => 'required|date',
+        ]);
+
+        $fine = Fine::create($request->all());
+
+        return response()->json([
+            'message' => 'Fine berhasil ditambahkan',
+            'fine' => $fine
+        ]);
+    }
+
+    // UPDATE FINE
+    public function update(Request $request, $id)
+    {
+        $fine = Fine::find($id);
+
+        if (!$fine) {
+            return response()->json(['message' => 'Fine tidak ditemukan'], 404);
+        }
+
+        $fine->update($request->all());
+
+        return response()->json([
+            'message' => 'Fine berhasil diperbarui',
+            'fine' => $fine
+        ]);
+    }
+
+    // DELETE FINE
+    public function destroy($id)
+    {
+        $fine = Fine::find($id);
+
+        if (!$fine) {
+            return response()->json(['message' => 'Fine tidak ditemukan'], 404);
+        }
+
+        $fine->delete();
+
+        return response()->json(['message' => 'Fine berhasil dihapus']);
     }
 }
