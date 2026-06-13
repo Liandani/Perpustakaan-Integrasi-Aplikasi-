@@ -14,16 +14,19 @@ class RabbitMQController extends Controller
         $client = new Client();
 
         // Call User Service
-        $userResponse = $client->get('http://user-service:8000/users/1');
+        $userApiUrl = env('USER_API_URL', 'http://user-api:8000');
+        $userResponse = $client->get($userApiUrl . '/users/1');
         $user = json_decode($userResponse->getBody(), true);
 
         // Call Book Service
-        $bookResponse = $client->get('http://book-service:8000/books/101');
+        $bookApiUrl = env('BOOK_API_URL', 'http://book-api:8000');
+        $bookResponse = $client->get($bookApiUrl . '/books/101');
         $book = json_decode($bookResponse->getBody(), true);
 
         // RabbitMQ Connection
+        $rabbitHost = env('RABBITMQ_HOST', 'rabbitmq');
         $connection = new AMQPStreamConnection(
-            'rabbitmq',
+            $rabbitHost,
             5672,
             'guest',
             'guest'
