@@ -2,6 +2,28 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di dalam file ini.
 
+## [0.3] - 2026-06-14
+
+### Changed (Diubah)
+- **Refactoring Arsitektur Monolitik:** Merombak `LoanController` dan `FineController` dengan menghapus seluruh referensi relasi Eloquent ORM lintas *database* (seperti `with(['user', 'book'])`). Setiap layanan kini beroperasi murni independen.
+- **Dynamic API Gateway:** Menghapus *mock response* (data palsu statis) di `api-gateway` dan merombak file `routes/web.php` menjadi *Dynamic Proxy*. Semua trafik klien ke Port 8000 sekarang diarahkan (*forwarded*) secara cerdas ke *port* internal mikroservis yang relevan.
+- **Format DateTime MySQL:** Menyesuaikan implementasi tipe data `due_date` dan `return_date` di `FineController` dengan melakukan parsing `Carbon` untuk menghindari *error* *Strict Mode* (`Invalid datetime format`) di MySQL.
+
+### Added (Ditambahkan)
+- **Skema Migrasi Terdistribusi:**
+  - Memisahkan dan membuat ulang struktur migrasi tabel `loans` dan `loan_histories` di dalam *Loan API*.
+  - Membuat tabel struktur migrasi `fines` terpisah di dalam *Fine API*.
+- **Komunikasi Antar Layanan (HTTP Request):** Mengimplementasikan pemanggilan *HTTP facade* bawaan Laravel pada *Fine API* agar dapat mengambil secara dinamis data peminjaman dari *Loan API* sesuai dengan prinsip *microservices*.
+- **Skrip Seeding Dummy Data:** Menambahkan skrip `seed_dummy_data.sql` dan alur penanaman *dummy data* SQL yang disesuaikan (*adapted*) dari *monolithic scheme* sebelumnya ke dalam masing-masing *database* mikroservis (`user_db`, `book_db`, `loan_db`).
+- **Skrip Comprehensive E2E Test:** Membuat skrip PowerShell `test-all-api.ps1` yang menyimulasikan aliran proses bisnis secara sempurna (CRUD User/Book -> Pinjam -> Telat Kembali -> Denda -> RabbitMQ Flow) melalui gerbang utama *API Gateway*.
+
+### Fixed (Diperbaiki)
+- **Bug 500 API Gateway Proxy Method:** Memperbaiki kesalahan *method* `Http::send` pada layanan proksi dengan menyelaraskannya ke penulisan konstruktor statis dinamis `Http::$method()` di ekosistem Laravel 13.
+- **Bug 500 Session & Cache Gateway:** Memperbaiki masalah sistem yang macet karena berusaha mencari `database.sqlite` (untuk mengatur sesi internal API Gateway). Menyelesaikannya dengan pembuatan *file* basis data secara eksplisit dan proses migrasi agar API Gateway bisa *boot-up*.
+- **Bug 419 Page Expired (CSRF):** Menonaktifkan *middleware* proteksi CSRF di `bootstrap/app.php` untuk `loan-api`, `fine-api`, dan `api-gateway` sehingga panggilan layanan proksi (*server-to-server*) dan eksekusi dari CLI/Powershell dapat berjalan tanpa penolakan token sesi keamanan.
+
+---
+
 ## [0.2] - 2026-06-14
 
 ### Added

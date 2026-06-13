@@ -61,4 +61,35 @@ class UserController extends Controller
 
         return response()->json($user);
     }
+
+    // UPDATE USER
+    public function update(Request $request, $id)
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json(['message' => 'User tidak ditemukan'], 404);
+        }
+
+        $user->update($request->all());
+
+        return response()->json([
+            'message' => 'User berhasil diperbarui',
+            'user' => $user
+        ]);
+    }
+
+    // DELETE USER
+    public function destroy($id)
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json(['message' => 'User tidak ditemukan'], 404);
+        }
+
+        $user->delete();
+
+        return response()->json(['message' => 'User berhasil dihapus']);
+    }
 }

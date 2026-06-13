@@ -6,9 +6,9 @@ Write-Host "=====================================" -ForegroundColor Cyan
 Write-Host ""
 
 # 1. Test User API
-Write-Host "1. Mengetes User API (Port 8001)..." -ForegroundColor Yellow
+Write-Host "1. Mengetes User API melalui Gateway (Port 8000)..." -ForegroundColor Yellow
 try {
-    $userResponse = Invoke-RestMethod -Uri "http://localhost:8001/users/1" -Method Get
+    $userResponse = Invoke-RestMethod -Uri "http://localhost:8000/users/1" -Method Get
     Write-Host "   [OK] Respons User API:" -ForegroundColor Green
     Write-Host ($userResponse | ConvertTo-Json -Depth 3)
 } catch {
@@ -17,9 +17,9 @@ try {
 Write-Host ""
 
 # 2. Test Book API
-Write-Host "2. Mengetes Book API (Port 8002)..." -ForegroundColor Yellow
+Write-Host "2. Mengetes Book API melalui Gateway (Port 8000)..." -ForegroundColor Yellow
 try {
-    $bookResponse = Invoke-RestMethod -Uri "http://localhost:8002/books/101" -Method Get
+    $bookResponse = Invoke-RestMethod -Uri "http://localhost:8000/books/3" -Method Get
     Write-Host "   [OK] Respons Book API:" -ForegroundColor Green
     Write-Host ($bookResponse | ConvertTo-Json -Depth 3)
 } catch {
@@ -28,10 +28,10 @@ try {
 Write-Host ""
 
 # 3. Test Loan API (Send Message ke RabbitMQ)
-Write-Host "3. Mengetes Loan API & Koneksi RabbitMQ (Port 8003)..." -ForegroundColor Yellow
+Write-Host "3. Mengetes Loan API melalui Gateway (Port 8000)..." -ForegroundColor Yellow
 Write-Host "   -> API ini akan memanggil User API, Book API secara internal, lalu mengirim pesan ke RabbitMQ."
 try {
-    $loanResponse = Invoke-RestMethod -Uri "http://localhost:8003/send-message" -Method Get
+    $loanResponse = Invoke-RestMethod -Uri "http://localhost:8000/send-message" -Method Get
     Write-Host "   [OK] Pesan Berhasil Terkirim ke RabbitMQ!" -ForegroundColor Green
     Write-Host ($loanResponse | ConvertTo-Json -Depth 5)
 } catch {
@@ -41,9 +41,9 @@ try {
 Write-Host ""
 
 # 4. Test Fine API (Consume Message dari RabbitMQ)
-Write-Host "4. Mengetes Fine API - Consume Message dari RabbitMQ (Port 8004)..." -ForegroundColor Yellow
+Write-Host "4. Mengetes Fine API melalui Gateway (Port 8000)..." -ForegroundColor Yellow
 try {
-    $fineResponse = Invoke-RestMethod -Uri "http://localhost:8004/consume-message" -Method Get
+    $fineResponse = Invoke-RestMethod -Uri "http://localhost:8000/consume-message" -Method Get
     if ($null -ne $fineResponse.data) {
         Write-Host "   [OK] Pesan Berhasil Ditarik (Consumed) dari RabbitMQ!" -ForegroundColor Green
         Write-Host ($fineResponse | ConvertTo-Json -Depth 5)
