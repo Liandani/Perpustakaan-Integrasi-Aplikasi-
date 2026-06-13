@@ -1,0 +1,40 @@
+services:
+
+  user-service:
+    build: ./user-service
+    ports:
+      - "8001:8000"
+
+  book-service:
+    build: ./book-service
+    ports:
+      - "8002:8000"
+
+  loan-service:
+    build: ./loan-service
+    ports:
+      - "8003:8000"
+
+  fine-service:
+    build: ./fine-service
+    ports:
+      - "8004:8000"
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+volumes:
+  mysql_data:
