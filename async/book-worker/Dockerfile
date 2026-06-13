@@ -13,9 +13,10 @@ RUN docker-php-ext-install pdo pdo_mysql sockets
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-COPY . .
+COPY ./async/book-worker .
+COPY ./packages /packages
 
-RUN composer install
+RUN composer update && cp .env.example .env && php artisan key:generate
 
 EXPOSE 8000
 

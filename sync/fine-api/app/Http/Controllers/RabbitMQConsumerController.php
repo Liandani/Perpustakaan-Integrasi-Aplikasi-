@@ -8,8 +8,9 @@ class RabbitMQConsumerController extends Controller
 {
     public function consume()
     {
+        $rabbitHost = env('RABBITMQ_HOST', 'rabbitmq');
         $connection = new AMQPStreamConnection(
-            'rabbitmq',
+            $rabbitHost,
             5672,
             'guest',
             'guest'

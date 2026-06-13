@@ -1,44 +1,62 @@
 services:
 
   api-gateway:
-    build: ./api-gateway
+    build:
+      context: .
+      dockerfile: ./api-gateway/Dockerfile
     ports:
       - "8000:8000"
 
   user-api:
-    build: ./sync/user-api
+    build:
+      context: .
+      dockerfile: ./sync/user-api/Dockerfile
     ports:
       - "8001:8000"
 
   book-api:
-    build: ./sync/book-api
+    build:
+      context: .
+      dockerfile: ./sync/book-api/Dockerfile
     ports:
       - "8002:8000"
 
   loan-api:
-    build: ./sync/loan-api
+    build:
+      context: .
+      dockerfile: ./sync/loan-api/Dockerfile
     ports:
       - "8003:8000"
 
   fine-api:
-    build: ./sync/fine-api
+    build:
+      context: .
+      dockerfile: ./sync/fine-api/Dockerfile
     ports:
       - "8004:8000"
 
   user-worker:
-    build: ./async/user-worker
+    build:
+      context: .
+      dockerfile: ./async/user-worker/Dockerfile
     # command: php artisan queue:work
 
   book-worker:
-    build: ./async/book-worker
+    build:
+      context: .
+      dockerfile: ./async/book-worker/Dockerfile
     # command: php artisan queue:work
 
   loan-worker:
-    build: ./async/loan-worker
+    build:
+      context: .
+      dockerfile: ./async/loan-worker/Dockerfile
     # command: php artisan queue:work
 
   fine-worker:
-    build: ./async/fine-worker
+    build:
+      context: .
+      dockerfile: ./async/fine-worker/Dockerfile
     # command: php artisan queue:work
 
   mysql:

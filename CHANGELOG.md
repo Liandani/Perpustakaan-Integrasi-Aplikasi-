@@ -2,6 +2,21 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di dalam file ini.
 
+## [0.2] - 2026-06-14
+
+### Added
+- Menambahkan skrip pengujian E2E otomatis (`test-e2e.ps1`) menggunakan PowerShell untuk validasi REST API dan RabbitMQ.
+- Mengimplementasikan variabel lingkungan dinamis (`env()`) pada kontroler untuk URL layanan dan RabbitMQ Host untuk menggantikan konfigurasi statis (*hardcode*).
+- Menambahkan perintah *generation* `APP_KEY` secara langsung ke dalam `Dockerfile` untuk memastikan tersedianya kunci enkripsi pada saat *build*.
+
+### Fixed
+- Memperbaiki kegagalan proses *build* Docker akibat `composer install` (Exit Code 4) dengan memperbarui *build context* menjadi *root directory* dan menyesuaikan instruksi `COPY`.
+- Memperbaiki kegagalan resolusi *local symlink* di dalam kontainer Docker dengan mengubah instruksi `composer install` menjadi `composer update`.
+- Memperbaiki *Bug 500 Internal Server Error* (`MissingAppKeyException`) akibat pengecualian `.dockerignore` dengan menyalin paksa `.env.example` menjadi `.env` pada langkah *build* Docker.
+- Memperbaiki *Bug 500 Internal Server Error* (`SQLiteDatabaseDoesNotExistException`) di Laravel 13 akibat ketiadaan file database untuk *session driver* bawaan dengan mengeksekusi inisialisasi file SQLite dan migrasi.
+
+---
+
 ## [0.1] - 2026-06-13
 
 ### Changed (Diubah)
