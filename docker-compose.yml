@@ -1,24 +1,45 @@
 services:
 
-  user-service:
-    build: ./user-service
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8000:8000"
+
+  user-api:
+    build: ./sync/user-api
     ports:
       - "8001:8000"
 
-  book-service:
-    build: ./book-service
+  book-api:
+    build: ./sync/book-api
     ports:
       - "8002:8000"
 
-  loan-service:
-    build: ./loan-service
+  loan-api:
+    build: ./sync/loan-api
     ports:
       - "8003:8000"
 
-  fine-service:
-    build: ./fine-service
+  fine-api:
+    build: ./sync/fine-api
     ports:
       - "8004:8000"
+
+  user-worker:
+    build: ./async/user-worker
+    # command: php artisan queue:work
+
+  book-worker:
+    build: ./async/book-worker
+    # command: php artisan queue:work
+
+  loan-worker:
+    build: ./async/loan-worker
+    # command: php artisan queue:work
+
+  fine-worker:
+    build: ./async/fine-worker
+    # command: php artisan queue:work
 
   mysql:
     image: mysql:8.0
