@@ -58,12 +58,16 @@ services:
     build:
       context: .
       dockerfile: ./async/loan-worker/Dockerfile
+    ports:
+      - "8011:8000"
     # command: php artisan queue:work
 
   fine-worker:
     build:
       context: .
       dockerfile: ./async/fine-worker/Dockerfile
+    ports:
+      - "8012:8000"
     # command: php artisan queue:work
 
   mysql:
