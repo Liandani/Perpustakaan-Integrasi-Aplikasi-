@@ -19,8 +19,9 @@ function proxyRequest(Request $request, $serviceUrl) {
         $response = Http::$method($serviceUrl, $request->all());
     }
 
+    $contentType = $response->header('Content-Type');
     return response($response->body(), $response->status())
-        ->header('Content-Type', 'application/json');
+        ->header('Content-Type', $contentType ? $contentType : 'application/json');
 }
 
 // User Service
@@ -54,5 +55,16 @@ Route::any('/fines/{path?}', function (Request $request, $path = null) {
 
 Route::any('/consume-message', function (Request $request) {
     $url = env('FINE_API_URL', 'http://fine-api:8000') . '/consume-message';
+    return proxyRequest($request, $url);
+});
+
+// GraphQL Service
+Route::any('/graphql', function (Request $request) {
+    $url = env('GRAPHQL_SERVICE_URL', 'http://graphql-service:8000') . '/graphql';
+    return proxyRequest($request, $url);
+});
+
+Route::any('/graphiql', function (Request $request) {
+    $url = env('GRAPHQL_SERVICE_URL', 'http://graphql-service:8000') . '/graphiql';
     return proxyRequest($request, $url);
 });
