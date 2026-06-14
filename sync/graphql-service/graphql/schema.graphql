@@ -45,7 +45,7 @@ type Fine {
     id: ID!
     loan_id: ID!
     user_id: ID!
-    amount: Float!
+    amount: Float! @rename(attribute: "total_fine")
     status: String!
     created_at: String
     updated_at: String

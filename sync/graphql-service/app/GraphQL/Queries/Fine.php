@@ -15,6 +15,6 @@ final class Fine
             return null;
         }
         
-        return $response->json();
+        return $response->json('data');
     }
 }

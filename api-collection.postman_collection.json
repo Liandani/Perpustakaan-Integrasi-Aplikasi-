@@ -7,7 +7,172 @@
 	},
 	"item": [
 		{
-			"name": "1. Sync API (REST)",
+			"name": "1. API Gateway",
+			"description": "Mengakses seluruh layanan melalui API Gateway di port 8000.",
+			"item": [
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Budi Santoso\",\n    \"email\": \"budi.test@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/users",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Book",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Seni Berpikir Positif\",\n    \"available\": true\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/books",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"books"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Loan (Borrow Book)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": 1,\n    \"book_id\": 1,\n    \"loan_date\": \"2026-06-14\",\n    \"due_date\": \"2026-06-21\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/loans",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"loans"
+							]
+						}
+					}
+				},
+				{
+					"name": "Return Book",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"loan_id\": 1,\n    \"return_date\": \"2026-06-24\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/loans/return",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"loans",
+								"return"
+							]
+						}
+					}
+				},
+				{
+					"name": "Check Fine",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"loan_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/fines/check",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"fines",
+								"check"
+							]
+						}
+					}
+				},
+				{
+					"name": "Send Message to RabbitMQ",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_gateway_url}}/send-message",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"send-message"
+							]
+						}
+					}
+				},
+				{
+					"name": "Consume Message from RabbitMQ",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_gateway_url}}/consume-message",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"consume-message"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Sync API (REST - Direct)",
 			"description": "Endpoint konvensional yang langsung mengenai database dan memblokir (synchronous).",
 			"item": [
 				{
@@ -105,7 +270,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"name\": \"Budi Santoso\"\n}"
+									"raw": "{\n    \"name\": \"Budi Santoso\",\n    \"email\": \"budi@example.com\",\n    \"password\": \"password123\"\n}"
 								},
 								"url": {
 									"raw": "{{user_api_url}}/users",
@@ -151,7 +316,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"user_id\": 1,\n    \"book_id\": 1,\n    \"loan_date\": \"2023-10-01\",\n    \"due_date\": \"2023-10-08\"\n}"
+									"raw": "{\n    \"user_id\": 1,\n    \"book_id\": 1,\n    \"loan_date\": \"2026-06-14\",\n    \"due_date\": \"2026-06-21\"\n}"
 								},
 								"url": {
 									"raw": "{{loan_api_url}}/loans",
@@ -176,7 +341,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"loan_id\": 1,\n    \"return_date\": \"2023-10-10\"\n}"
+									"raw": "{\n    \"loan_id\": 1,\n    \"return_date\": \"2026-06-24\"\n}"
 								},
 								"url": {
 									"raw": "{{loan_api_url}}/loans/return",
@@ -210,13 +375,39 @@
 									]
 								}
 							}
+						},
+						{
+							"name": "Check Fine",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"loan_id\": 1\n}"
+								},
+								"url": {
+									"raw": "{{fine_api_url}}/fines/check",
+									"host": [
+										"{{fine_api_url}}"
+									],
+									"path": [
+										"fines",
+										"check"
+									]
+								}
+							}
 						}
 					]
 				}
 			]
 		},
 		{
-			"name": "2. Async API (RabbitMQ)",
+			"name": "3. Async API (RabbitMQ - Direct)",
 			"description": "Endpoint berbasis Event-Driven menggunakan RabbitMQ.",
 			"item": [
 				{
@@ -257,6 +448,10 @@
 		}
 	],
 	"variable": [
+		{
+			"key": "api_gateway_url",
+			"value": "http://localhost:8000"
+		},
 		{
 			"key": "book_api_url",
 			"value": "http://localhost:8002"

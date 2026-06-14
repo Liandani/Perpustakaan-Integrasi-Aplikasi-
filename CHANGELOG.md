@@ -2,9 +2,23 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di dalam file ini.
 
-## [0.3] - 2026-06-14
+## [0.4] - 2026-06-14
 
-### Changed (Diubah)
+### Added (Ditambahkan)
+- **GraphQL BFF (Backend-For-Frontend):** Membuat layanan baru `sync/graphql-service` menggunakan `nuwave/lighthouse` sebagai lapisan agregator data.
+- **GraphiQL UI:** Mengintegrasikan `mll-lab/laravel-graphiql` sebagai antarmuka interaktif untuk mempermudah eksekusi dan eksplorasi kueri GraphQL langsung dari *browser*.
+- **API Gateway GraphQL Proxy:** Menambahkan rute dinamis di `api-gateway` untuk meneruskan lalu lintas `/graphql` dan `/graphiql` ke `graphql-service`.
+
+### Fixed (Diperbaiki)
+- **Bug Raw HTML GraphiQL:** Memperbaiki *bug* di mana antarmuka GraphiQL dirender sebagai teks mentah (*raw code*) oleh *browser*. Diselesaikan dengan meneruskan *header* `Content-Type` asli dari layanan *backend* alih-alih melakukan *hardcode* `application/json` di API Gateway.
+- **Bug __PHP_Incomplete_Class pada Cache AST:** Memperbaiki *Internal Server Error* saat membaca memori cache AST Lighthouse akibat ketidakcocokan serialisasi kelas. Diatasi dengan menonaktifkan *Query Cache* (`LIGHTHOUSE_QUERY_CACHE_ENABLE=false`) untuk tahap pengembangan lokal.
+- **Bug Missing Resolvers:** Memperbaiki *error* `Could not locate a field resolver` dengan membuat kelas *resolver* kustom secara eksplisit untuk `Loan.php` dan `Fine.php`.
+- **Bug Nullable Field di GraphQL:** Memperbaiki *error* nilai *null* pada daftar denda dan peminjaman dengan merombak kode *resolver* agar secara cerdas mengekstrak kunci `data` (`$response->json('data')`) dari balikan JSON layanan REST API.
+- **Mapping Skema Field:** Menyelesaikan ketidakcocokan antara nama atribut API (`total_fine`) dan skema GraphQL (`amount`) menggunakan direktif `@rename(attribute: "total_fine")` agar kueri GraphQL tetap kompatibel tanpa perlu penyesuaian dari sisi *client*.
+
+---
+
+## [0.3] - 2026-06-14### Changed (Diubah)
 - **Refactoring Arsitektur Monolitik:** Merombak `LoanController` dan `FineController` dengan menghapus seluruh referensi relasi Eloquent ORM lintas *database* (seperti `with(['user', 'book'])`). Setiap layanan kini beroperasi murni independen.
 - **Dynamic API Gateway:** Menghapus *mock response* (data palsu statis) di `api-gateway` dan merombak file `routes/web.php` menjadi *Dynamic Proxy*. Semua trafik klien ke Port 8000 sekarang diarahkan (*forwarded*) secara cerdas ke *port* internal mikroservis yang relevan.
 - **Format DateTime MySQL:** Menyesuaikan implementasi tipe data `due_date` dan `return_date` di `FineController` dengan melakukan parsing `Carbon` untuk menghindari *error* *Strict Mode* (`Invalid datetime format`) di MySQL.
