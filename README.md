@@ -1,58 +1,129 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 📚 Sistem Perpustakaan Integrasi Aplikasi (Microservices)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Proyek ini merupakan sistem manajemen perpustakaan berbasis arsitektur **Microservices** yang dibangun dengan framework **Laravel 13 / PHP 8.4**. Sistem ini mengintegrasikan komunikasi sinkron (REST API melalui API Gateway & GraphQL) dan komunikasi asinkron (Message Broker menggunakan RabbitMQ).
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🏗️ Arsitektur & Daftar Layanan
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Sistem terdiri dari beberapa service berikut yang saling terhubung:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Nama Layanan | Direktori | Port (Docker) | Deskripsi |
+| :--- | :--- | :--- | :--- |
+| **API Gateway** | `file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/api-gateway` | `8000` | Gateway utama untuk merutekan request ke microservices lainnya. |
+| **User Service** | `file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/sync/user-api` | `8001` | Mengelola data pengguna (pendaftaran, detail, dan hapus user). |
+| **Book Service** | `file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/sync/book-api` | `8002` | Mengelola inventaris buku dan ketersediaan buku. |
+| **Loan Service** | `file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/sync/loan-api` | `8003` | Mengelola peminjaman dan pengembalian buku. |
+| **Fine Service** | `file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/sync/fine-api` | `8004` | Menghitung denda secara otomatis jika ada keterlambatan pengembalian. |
+| **GraphQL Service** | `file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/sync/graphql-service` | `8005` | Menyediakan antarmuka GraphQL / GraphiQL untuk query terpadu. |
+| **Loan Worker** | `file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/async/loan-worker` | `8011` | Worker asinkron untuk mempublikasikan pesan peminjaman ke RabbitMQ. |
+| **Fine Worker** | `file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/async/fine-worker` | `8012` | Worker asinkron untuk mengonsumsi pesan dari RabbitMQ. |
+| **MySQL DB** | - | `3307` (host) | Database bersama dengan schema terpisah per service. |
+| **RabbitMQ** | - | `5672` / `15672` (Admin UI) | Message broker untuk komunikasi asinkron event-driven. |
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## ⚡ Prasyarat Sistem
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+1. **Docker Desktop** (Sangat Direkomendasikan) agar tidak perlu menginstal PHP, database, dan broker secara manual.
+2. Jika instalasi manual (Tanpa Docker):
+   - **PHP 8.4+** dengan ekstensi `pdo_mysql` & `sockets` diaktifkan.
+   - **Composer** terbaru.
+   - **MySQL** terinstal secara lokal (Port `3306` atau `3307`).
+   - **RabbitMQ** terinstal dan berjalan secara lokal (Port `5672`).
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+---
 
-## Agentic Development
+## 🚀 Panduan Instalasi & Menjalankan Aplikasi
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### Menggunakan Docker Compose
 
-```bash
-composer require laravel/boost --dev
+1.  Pastikan **Docker Desktop** Anda sudah terbuka dan berjalan.
+2.  Buka terminal/command prompt di direktori root proyek ini (`d:\joki\Perpustakaan-Integrasi-Aplikasi-`).
+3.  Jalankan perintah berikut untuk mengompilasi dan mengaktifkan seluruh kontainer:
+    ```bash
+    docker-compose up --build -d
+    ```
+    *Perintah ini akan menginisialisasi database, mengunduh dependency library via Composer, membuat APP_KEY Laravel, menjalankan migrasi database, dan menghidupkan seluruh microservices.*
+4.  Masukkan data awal (*dummy data*) dengan menjalankan perintah SQL berikut:
+    ```bash
+    docker exec -i mysql_db mysql -uroot -proot < seed_dummy_data.sql
+    ```
 
-php artisan boost:install
-```
+---
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
 
-## Contributing
+## 🧪 Panduan Cara Pengujian (Testing)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Proyek ini dapat diuji secara otomatis menggunakan skrip PowerShell bawaan atau secara interaktif dengan Postman.
 
-## Code of Conduct
+### A. Pengujian Menggunakan Script PowerShell
+Terdapat dua skrip PowerShell di direktori utama untuk melakukan pengetesan otomatis terhadap endpoint-endpoint API:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+1.  **Pengujian Alur Lengkap Microservices (test-all-api.ps1)**:
+    Menjalankan pengujian otomatis end-to-end dari pembuatan User baru, Buku baru, proses Peminjaman (Loan), proses Pengembalian lambat (Return) untuk memicu denda (Fine), hingga uji coba kirim pesan asinkron ke RabbitMQ.
+    ```powershell
+    .\test-all-api.ps1
+    ```
+2.  **Pengujian Alur Integrasi Sederhana (test-e2e.ps1)**:
+    Menguji konektivitas dasar tiap microservice melalui gateway.
+    ```powershell
+    .\test-e2e.ps1
+    ```
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### B. Panduan Pengujian Menggunakan Postman (Lengkap)
 
-## License
+Kami telah menyediakan file koleksi Postman siap pakai di root direktori dengan nama [api-collection.postman_collection.json](file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/api-collection.postman_collection.json).
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Berikut adalah langkah-langkah detail cara menggunakannya:
+
+#### Langkah 1: Impor Koleksi ke Postman
+1. Buka aplikasi **Postman** di komputer Anda.
+2. Di pojok kiri atas, klik tombol **Import**.
+3. Pilih opsi **Files** atau *drag-and-drop* berkas `api-collection.postman_collection.json` dari folder proyek Anda.
+4. Klik **Import** untuk mengonfirmasi. Koleksi bernama **Enterprise Application Integration API** akan muncul di sidebar kiri Anda.
+
+#### Langkah 2: Memahami & Mengatur Variabel Lingkungan (Variables)
+Koleksi ini menggunakan variabel internal Postman agar Anda tidak perlu mengetik alamat URL satu per satu.
+1. Klik pada nama Koleksi (**Enterprise Application Integration API**) di sidebar kiri.
+2. Pilih tab **Variables** di bagian atas menu koleksi.
+3. Anda akan melihat daftar variabel seperti:
+   *   `api_gateway_url`: `http://localhost:8000` (Gateway Utama)
+   *   `user_api_url`: `http://localhost:8001` (User Service)
+   *   `book_api_url`: `http://localhost:8002` (Book Service)
+   *   `loan_api_url`: `http://localhost:8003` (Loan Service)
+   *   `fine_api_url`: `http://localhost:8004` (Fine Service)
+   *   `loan_worker_url`: `http://localhost:8011` (Loan Worker)
+   *   `fine_worker_url`: `http://localhost:8012` (Fine Worker)
+
+#### Langkah 3: Menjalankan Request Tes Satu per Satu
+Koleksi dibagi menjadi 3 folder utama untuk mencakup semua skenario pengujian:
+
+##### 1. Folder `1. API Gateway` (Tes Akses Terpusat - Sinkron & Asinkron)
+Semua request di folder ini dikirimkan ke port `8000` (API Gateway) yang kemudian akan mem-proxy ke microservices terkait.
+*   **Create User**: Membuat user baru. Kirim request ini untuk menyimpan data user baru ke database `user_db`.
+*   **Create Book**: Membuat buku baru ke database `book_db`.
+*   **Create Loan (Borrow Book)**: Mengirim data peminjaman buku (User ID & Book ID) ke database `loan_db`.
+*   **Return Book**: Mengirim request pengembalian buku dengan mencantumkan tanggal pengembalian. Jika tanggal kembali melebihi tanggal jatuh tempo, sistem akan menghitung denda.
+*   **Check Fine**: Memeriksa denda atas peminjaman tertentu ke database `fine_db`.
+*   **Send Message to RabbitMQ**: Mengirim pesan event ke RabbitMQ secara asinkron dari Loan service.
+*   **Consume Message from RabbitMQ**: Menarik antrean pesan dari RabbitMQ secara asinkron dari Fine worker.
+
+##### 2. Folder `2. Sync API (REST - Direct)` (Tes Akses Langsung Ke Service)
+Koleksi ini digunakan untuk menembak microservice individual secara langsung ke port masing-masing (bypass API Gateway) untuk memastikan tiap service independen berjalan dengan normal.
+*   Cobalah request di dalam subfolder **Book Service** (port 8002), **User Service** (port 8001), **Loan Service** (port 8003), dan **Fine Service** (port 8004).
+
+##### 3. Folder `3. Async API (RabbitMQ - Direct)` (Tes Integrasi Message Broker)
+Menguji pengiriman pesan secara langsung ke antrean event.
+*   **Loan Worker (PUBLISHER)** (port 8011): Mengirim event peminjaman buku ke antrean.
+*   **Fine Worker (CONSUMER)** (port 8012): Menarik pesan dari antrean untuk diproses lebih lanjut.
+
+---
+
+## 📈 Uji Coba GraphQL (Interactive Playground)
+
+Jika kontainer Docker sudah berjalan, Anda dapat berinteraksi dengan GraphQL menggunakan GraphiQL Playground:
+*   Buka browser Anda dan akses: `http://localhost:8005/graphiql`
+*   Di sana Anda dapat menuliskan query GraphQL untuk mengambil data terintegrasi (User, Book, dan Loan) secara dinamis dalam satu request.
