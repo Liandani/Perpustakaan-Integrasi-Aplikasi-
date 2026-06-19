@@ -10,14 +10,14 @@ Sistem terdiri dari beberapa service berikut yang saling terhubung:
 
 | Nama Layanan | Direktori | Port (Docker) | Deskripsi |
 | :--- | :--- | :--- | :--- |
-| **API Gateway** | `file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/api-gateway` | `8000` | Gateway utama untuk merutekan request ke microservices lainnya. |
-| **User Service** | `file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/sync/user-api` | `8001` | Mengelola data pengguna (pendaftaran, detail, dan hapus user). |
-| **Book Service** | `file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/sync/book-api` | `8002` | Mengelola inventaris buku dan ketersediaan buku. |
-| **Loan Service** | `file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/sync/loan-api` | `8003` | Mengelola peminjaman dan pengembalian buku. |
-| **Fine Service** | `file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/sync/fine-api` | `8004` | Menghitung denda secara otomatis jika ada keterlambatan pengembalian. |
-| **GraphQL Service** | `file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/sync/graphql-service` | `8005` | Menyediakan antarmuka GraphQL / GraphiQL untuk query terpadu. |
-| **Loan Worker** | `file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/async/loan-worker` | `8011` | Worker asinkron untuk mempublikasikan pesan peminjaman ke RabbitMQ. |
-| **Fine Worker** | `file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/async/fine-worker` | `8012` | Worker asinkron untuk mengonsumsi pesan dari RabbitMQ. |
+| **API Gateway** | [`./api-gateway`](./api-gateway) | `8000` | Gateway utama untuk merutekan request ke microservices lainnya. |
+| **User Service** | [`./sync/user-api`](./sync/user-api) | `8001` | Mengelola data pengguna (pendaftaran, detail, dan hapus user). |
+| **Book Service** | [`./sync/book-api`](./sync/book-api) | `8002` | Mengelola inventaris buku dan ketersediaan buku. |
+| **Loan Service** | [`./sync/loan-api`](./sync/loan-api) | `8003` | Mengelola peminjaman dan pengembalian buku. |
+| **Fine Service** | [`./sync/fine-api`](./sync/fine-api) | `8004` | Menghitung denda secara otomatis jika ada keterlambatan pengembalian. |
+| **GraphQL Service** | [`./sync/graphql-service`](./sync/graphql-service) | `8005` | Menyediakan antarmuka GraphQL / GraphiQL untuk query terpadu. |
+| **Loan Worker** | [`./async/loan-worker`](./async/loan-worker) | `8011` | Worker asinkron untuk mempublikasikan pesan peminjaman ke RabbitMQ. |
+| **Fine Worker** | [`./async/fine-worker`](./async/fine-worker) | `8012` | Worker asinkron untuk mengonsumsi pesan dari RabbitMQ. |
 | **MySQL DB** | - | `3307` (host) | Database bersama dengan schema terpisah per service. |
 | **RabbitMQ** | - | `5672` / `15672` (Admin UI) | Message broker untuk komunikasi asinkron event-driven. |
 
@@ -26,11 +26,6 @@ Sistem terdiri dari beberapa service berikut yang saling terhubung:
 ## ⚡ Prasyarat Sistem
 
 1. **Docker Desktop** (Sangat Direkomendasikan) agar tidak perlu menginstal PHP, database, dan broker secara manual.
-2. Jika instalasi manual (Tanpa Docker):
-   - **PHP 8.4+** dengan ekstensi `pdo_mysql` & `sockets` diaktifkan.
-   - **Composer** terbaru.
-   - **MySQL** terinstal secara lokal (Port `3306` atau `3307`).
-   - **RabbitMQ** terinstal dan berjalan secara lokal (Port `5672`).
 
 ---
 
@@ -39,16 +34,21 @@ Sistem terdiri dari beberapa service berikut yang saling terhubung:
 ### Menggunakan Docker Compose
 
 1.  Pastikan **Docker Desktop** Anda sudah terbuka dan berjalan.
-2.  Buka terminal/command prompt di direktori root proyek ini (`d:\joki\Perpustakaan-Integrasi-Aplikasi-`).
+2.  Buka terminal/command prompt di direktori root proyek ini.
 3.  Jalankan perintah berikut untuk mengompilasi dan mengaktifkan seluruh kontainer:
     ```bash
     docker-compose up --build -d
     ```
     *Perintah ini akan menginisialisasi database, mengunduh dependency library via Composer, membuat APP_KEY Laravel, menjalankan migrasi database, dan menghidupkan seluruh microservices.*
-4.  Masukkan data awal (*dummy data*) dengan menjalankan perintah SQL berikut:
-    ```bash
-    docker exec -i mysql_db mysql -uroot -proot < seed_dummy_data.sql
-    ```
+4.  Masukkan data awal (*dummy data*) dengan menjalankan perintah berikut sesuai dengan terminal yang Anda gunakan:
+    *   **PowerShell**:
+        ```powershell
+        Get-Content seed_dummy_data.sql | docker exec -i mysql_db mysql -uroot -proot
+        ```
+    *   **CMD / Linux / Git Bash**:
+        ```bash
+        docker exec -i mysql_db mysql -uroot -proot < seed_dummy_data.sql
+        ```
 
 ---
 
@@ -75,7 +75,7 @@ Terdapat dua skrip PowerShell di direktori utama untuk melakukan pengetesan otom
 
 ### B. Panduan Pengujian Menggunakan Postman (Lengkap)
 
-Kami telah menyediakan file koleksi Postman siap pakai di root direktori dengan nama [api-collection.postman_collection.json](file:///d:/joki/Perpustakaan-Integrasi-Aplikasi-/api-collection.postman_collection.json).
+Kami telah menyediakan file koleksi Postman siap pakai di root direktori dengan nama [api-collection.postman_collection.json](./api-collection.postman_collection.json).
 
 Berikut adalah langkah-langkah detail cara menggunakannya:
 
