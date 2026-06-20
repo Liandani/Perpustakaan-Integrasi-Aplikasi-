@@ -8,50 +8,81 @@ class RabbitMQConsumerController extends Controller
 {
     public function consume()
     {
-        $rabbitHost = env('RABBITMQ_HOST', 'rabbitmq');
-        $connection = new AMQPStreamConnection(
-            $rabbitHost,
-            5672,
-            'guest',
-            'guest'
-        );
+        try {
+            $rabbitHost = env('RABBITMQ_HOST', 'rabbitmq');
+            $connection = new AMQPStreamConnection(
+                $rabbitHost,
+                5672,
+                'guest',
+                'guest'
+            );
 
-        $channel = $connection->channel();
+            $channel = $connection->channel();
 
-        $channel->queue_declare(
-            'book_queue',
-            false,
-            true,
-            false,
-            false
-        );
+            $channel->queue_declare(
+                'book_queue',
+                false,
+                true,
+                false,
+                false
+            );
 
-        $messageData = null;
+            // Cek jumlah pesan di antrian terlebih dahulu
+            list(, $messageCount,) = $channel->queue_declare(
+                'book_queue',
+                true // passive: hanya cek, tidak buat ulang
+            );
 
-        $callback = function ($msg) use (&$messageData) {
-            $messageData = json_decode($msg->body, true);
-        };
+            if ($messageCount === 0) {
+                $channel->close();
+                $connection->close();
 
-        $channel->basic_consume(
-            'book_queue',
-            '',
-            false,
-            true,
-            false,
-            false,
-            $callback
-        );
+                return response()->json([
+                    'status' => 'No Message',
+                    'data' => null,
+                    'message' => 'Antrian kosong. Silakan kirim pesan terlebih dahulu melalui /send-message'
+                ]);
+            }
 
-        if ($channel->is_consuming()) {
-            $channel->wait();
+            $messageData = null;
+
+            $callback = function ($msg) use (&$messageData) {
+                $messageData = json_decode($msg->body, true);
+            };
+
+            $channel->basic_consume(
+                'book_queue',
+                '',
+                false,
+                true,
+                false,
+                false,
+                $callback
+            );
+
+            if ($channel->is_consuming()) {
+                // Tambahkan timeout 5 detik agar tidak hang selamanya
+                $channel->wait(null, false, 5);
+            }
+
+            $channel->close();
+            $connection->close();
+
+            return response()->json([
+                'status' => 'Message Consumed',
+                'data' => $messageData
+            ]);
+        } catch (\PhpAmqpLib\Exception\AMQPTimeoutException $e) {
+            return response()->json([
+                'status' => 'Timeout',
+                'data' => null,
+                'message' => 'Tidak ada pesan dalam antrian. Silakan kirim pesan terlebih dahulu melalui /send-message'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'Error',
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        $channel->close();
-        $connection->close();
-
-        return response()->json([
-            'status' => 'Message Consumed',
-            'data' => $messageData
-        ]);
     }
 }
