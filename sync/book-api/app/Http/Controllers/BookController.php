@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
-use App\Models\Loan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class BookController extends Controller
 {
@@ -28,7 +28,7 @@ class BookController extends Controller
         return response()->json($book);
     }
 
-    // CHECK BOOK STATUS (AVAILABLE OR BORROWED)
+    // CHECK STATUS BOOK (AVAILABLE / BORROWED)
     public function status($id)
     {
         $book = Book::find($id);
@@ -39,21 +39,36 @@ class BookController extends Controller
             ], 404);
         }
 
-        $activeLoan = Loan::where('book_id', $id)
-            ->where('status', 'borrowed')
-            ->first();
+        // CALL LOAN-SERVICE (MICROSERVICE WAY)
+        $response = Http::get(
+            env('LOAN_API_URL', 'http://loan-api:8000') . "/loans/book/{$id}"
+        );
 
-        if ($activeLoan) {
+        // kalau loan-api error / tidak jalan
+        if ($response->failed()) {
+            return response()->json([
+                'book_id' => $book->id,
+                'title' => $book->title,
+                'available' => true,
+                'message' => 'Loan service tidak tersedia, dianggap buku tersedia'
+            ]);
+        }
+
+        $loan = $response->json();
+
+        // jika sedang dipinjam
+        if (!empty($loan['borrowed']) && $loan['borrowed'] === true) {
             return response()->json([
                 'book_id' => $book->id,
                 'title' => $book->title,
                 'available' => false,
                 'message' => 'Buku sedang dipinjam',
-                'borrowed_by' => $activeLoan->user_id,
-                'loan_id' => $activeLoan->id,
+                'borrowed_by' => $loan['user_id'] ?? null,
+                'loan_id' => $loan['loan_id'] ?? null,
             ]);
         }
 
+        // jika tersedia
         return response()->json([
             'book_id' => $book->id,
             'title' => $book->title,
@@ -87,7 +102,9 @@ class BookController extends Controller
         $book = Book::find($id);
 
         if (!$book) {
-            return response()->json(['message' => 'Buku tidak ditemukan'], 404);
+            return response()->json([
+                'message' => 'Buku tidak ditemukan'
+            ], 404);
         }
 
         $book->update($request->all());
@@ -104,11 +121,15 @@ class BookController extends Controller
         $book = Book::find($id);
 
         if (!$book) {
-            return response()->json(['message' => 'Buku tidak ditemukan'], 404);
+            return response()->json([
+                'message' => 'Buku tidak ditemukan'
+            ], 404);
         }
 
         $book->delete();
 
-        return response()->json(['message' => 'Buku berhasil dihapus']);
+        return response()->json([
+            'message' => 'Buku berhasil dihapus'
+        ]);
     }
 }

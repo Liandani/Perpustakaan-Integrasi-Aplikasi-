@@ -6,6 +6,13 @@ services:
       dockerfile: ./api-gateway/Dockerfile
     ports:
       - "8000:8000"
+    environment:
+      USER_API_URL: http://user-api:8000
+      BOOK_API_URL: http://book-api:8000
+      LOAN_API_URL: http://loan-api:8000
+      FINE_API_URL: http://fine-api:8000
+      GRAPHQL_SERVICE_URL: http://graphql-service:8000
+
 
   user-api:
     build:

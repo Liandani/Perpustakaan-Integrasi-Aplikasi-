@@ -11,17 +11,53 @@ class RabbitMQController extends Controller
 {
     public function send()
     {
-        $client = new Client();
+        $userId = request()->input('userId') ?? request()->query('userId');
+        $bookId = request()->input('bookId') ?? request()->query('bookId');
 
-        // Call User Service
+        $client = new Client([
+            'http_errors' => false,
+            'connect_timeout' => 5,
+            'timeout' => 10,
+        ]);
+
         $userApiUrl = env('USER_API_URL', 'http://user-api:8000');
-        $userResponse = $client->get($userApiUrl . '/users/1', ['http_errors' => false]);
-        $user = $userResponse->getStatusCode() == 200 ? json_decode($userResponse->getBody(), true) : ['id' => 1, 'name' => 'Mock User'];
-
-        // Call Book Service
         $bookApiUrl = env('BOOK_API_URL', 'http://book-api:8000');
-        $bookResponse = $client->get($bookApiUrl . '/books/3', ['http_errors' => false]);
-        $book = $bookResponse->getStatusCode() == 200 ? json_decode($bookResponse->getBody(), true) : ['id' => 3, 'title' => 'Mock Book'];
+
+        // Fetch User (Latest if not specified)
+        if (!$userId) {
+            $userResponse = $client->get($userApiUrl . '/users');
+            if ($userResponse->getStatusCode() == 200) {
+                $users = json_decode($userResponse->getBody(), true);
+                if (!empty($users)) {
+                    $user = end($users);
+                } else {
+                    $user = ['id' => 1, 'name' => 'Mock User'];
+                }
+            } else {
+                $user = ['id' => 1, 'name' => 'Mock User'];
+            }
+        } else {
+            $userResponse = $client->get($userApiUrl . '/users/' . $userId);
+            $user = $userResponse->getStatusCode() == 200 ? json_decode($userResponse->getBody(), true) : ['id' => (int)$userId, 'name' => 'Mock User'];
+        }
+
+        // Fetch Book (Latest if not specified)
+        if (!$bookId) {
+            $bookResponse = $client->get($bookApiUrl . '/books');
+            if ($bookResponse->getStatusCode() == 200) {
+                $books = json_decode($bookResponse->getBody(), true);
+                if (!empty($books)) {
+                    $book = end($books);
+                } else {
+                    $book = ['id' => 3, 'title' => 'Mock Book'];
+                }
+            } else {
+                $book = ['id' => 3, 'title' => 'Mock Book'];
+            }
+        } else {
+            $bookResponse = $client->get($bookApiUrl . '/books/' . $bookId);
+            $book = $bookResponse->getStatusCode() == 200 ? json_decode($bookResponse->getBody(), true) : ['id' => (int)$bookId, 'title' => 'Mock Book'];
+        }
 
         // RabbitMQ Connection
         $rabbitHost = env('RABBITMQ_HOST', 'rabbitmq');
